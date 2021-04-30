@@ -1,0 +1,289 @@
+//#pragma once
+//#include <cstddef>
+//#include <iterator>
+//#include <compare>
+//#include <memory>
+//#include <algorithm>
+//#include <initializer_list>
+//#include <utility>
+//#include <cassert>
+
+//#include <algostruct/dynamic_array/export.hxx>
+module;
+export module ds.dynamic_array;
+import<cstddef>;
+import<iterator>;
+import<compare>;
+import<memory>;
+import<algorithm>;
+import<initializer_list>;
+import<utility>;
+import<cassert>;
+
+export namespace ds
+{
+
+  template<typename type> class dynamic_array
+  {
+    size_t size_;
+    size_t capacity_;
+    std::unique_ptr<type[]> data_; // NOLINT
+
+    struct dyna_iter
+    {
+      // member variables required by iterator_traits
+      using difference_type = std::ptrdiff_t;
+      using value_type = type;
+      using pointer = type *;
+      using reference = type &;
+      using iterator_category = std::random_access_iterator_tag;
+      using iterator_concept = std::contiguous_iterator_tag;
+
+      // for ranges the iterator class needs to be default constructible
+      explicit dyna_iter(pointer ptr = nullptr)
+          : ptr_{ ptr }
+      {
+      }
+
+      dyna_iter(dyna_iter const &copy) noexcept = default;
+
+      auto
+      operator=(dyna_iter const &copy) noexcept -> dyna_iter & = default;
+
+      dyna_iter(dyna_iter &&move) noexcept = default;
+
+      auto
+      operator=(dyna_iter &&move) noexcept -> dyna_iter & = default;
+
+      ~dyna_iter() = default;
+
+      auto
+      operator+=(difference_type const &diff) -> dyna_iter &
+      {
+        ptr_ += diff;
+        return *this;
+      }
+
+      auto
+      operator-=(difference_type const &diff) -> dyna_iter &
+      {
+        ptr_ -= diff;
+        return *this;
+      }
+
+      // add two objects creates a new value which is local to the function so
+      // must be returned by value
+      auto
+      operator+(difference_type const &diff) -> dyna_iter
+      {
+        auto old_ptr = ptr_;
+        ptr_ = ptr_ + diff;
+        auto temp = *this;
+        ptr_ = old_ptr;
+        return temp;
+      }
+
+      auto
+      operator-(difference_type const &diff) -> dyna_iter
+      {
+        auto old_ptr = ptr_;
+        ptr_ = ptr_ - diff;
+        auto temp = *this;
+        ptr_ = old_ptr;
+        return temp;
+      }
+
+      auto
+      operator++() -> dyna_iter &
+      {
+        ++ptr_;
+        return *this;
+      }
+
+      auto
+      operator--() -> dyna_iter &
+      {
+        --ptr_;
+        return *this;
+      }
+
+      auto
+      operator++(int) const -> dyna_iter
+      {
+        auto temp = *this;
+        ++(*this);
+        return temp;
+      }
+
+      auto
+      operator--(int) const -> dyna_iter
+      {
+        auto temp = *this;
+        --(*this);
+        return temp;
+      }
+
+      auto
+      operator*() const -> reference
+      {
+        return *ptr_;
+      }
+
+      auto
+      operator->() const -> pointer
+      {
+        return ptr_;
+      }
+
+      auto
+      operator<=>(dyna_iter const &rhs) const
+          -> std::strong_ordering = default;
+
+      auto
+      operator==(dyna_iter const &rhs) const -> bool
+          = default;
+
+    private:
+      pointer ptr_;
+    };
+
+    using iterator = dyna_iter;
+
+  public:
+    explicit dynamic_array(size_t capacity)
+        : size_{ 0 }
+        , capacity_{ capacity } // NOLINTNEXTLINE
+        , data_{ std::make_unique<type[]>(capacity) }
+    {
+    }
+    // NOLINTNEXTLINE
+    explicit dynamic_array(std::initializer_list<type> list)
+        : size_{ list.size() }
+        , capacity_{ list.size() }
+        , data_{ std::make_unique<type[]>(list.size()) } // NOLINT
+    {
+      std::ranges::move(list, begin());
+    }
+
+    dynamic_array(dynamic_array const &copy)
+        : size_{ copy.size_ }
+        , capacity_{ copy.size_ }
+        , data_{ std::make_unique<type[]>(size_) } // NOLINT
+    {
+      std::ranges::copy(copy.begin(), copy.end(), begin());
+    }
+
+    dynamic_array(dynamic_array &&move) noexcept
+        : size_{ std::exchange(move.size_, 0) }
+        , capacity_{ std::exchange(move.capacity_, 0) }
+        , data_{ std::exchange(move.data_, nullptr) }
+    {
+    }
+
+    auto
+    operator=(dynamic_array const &copy) -> dynamic_array &
+    {
+      if (&copy != this)
+        {
+          auto copied = dynamic_array(copy);
+          this->swap(copied);
+        }
+      return *this;
+    }
+
+    auto
+    operator=(dynamic_array &&move) noexcept -> dynamic_array &
+    {
+      auto moved = std::move(move);
+      this->swap(moved);
+      return *this;
+    }
+
+    auto
+    push_back(type const &value) noexcept -> void
+    {
+      if (size_ < capacity_)
+        {
+          data_[size_++] = value;
+        }
+      else
+        {
+          dynamic_array bigger_array = dynamic_array(size_ * 2);
+          std::ranges::move(begin(), end(), bigger_array.begin());
+          bigger_array.size_ = size_;
+          bigger_array.data_[bigger_array.size_++] = value;
+          *this = std::move(bigger_array);
+        }
+    }
+
+    auto
+    pop_back() noexcept -> void
+    {
+      *end() = 0;
+      --size_;
+    }
+
+    auto
+    swap(dynamic_array &rhs) noexcept -> void
+    {
+      std::swap(rhs.data_, data_);
+      std::swap(rhs.capacity_, capacity_);
+      std::swap(rhs.size_, size_);
+    }
+
+    [[nodiscard]] auto
+    operator[](size_t index) noexcept -> type &
+    {
+      assert(index < size_
+             && "index must not be equal or greater than size of array");
+      return data_[index];
+    }
+
+    [[nodiscard]] auto
+    size() const -> size_t
+    {
+      return size_;
+    }
+
+    [[nodiscard]] auto
+    capacity() const -> size_t
+    {
+      return capacity_;
+    }
+
+    auto
+    begin() const noexcept -> iterator
+    {
+      return iterator(data_.get());
+    }
+
+    auto
+    end() const noexcept -> iterator
+    {
+      return iterator(data_.get() + size_);
+    }
+
+    auto
+    begin() noexcept -> iterator
+    {
+      return iterator(data_.get());
+    }
+
+    auto
+    end() noexcept -> iterator
+    {
+      return iterator(data_.get() + size_);
+    }
+
+    ~dynamic_array() = default;
+  };
+
+  template<typename type>
+  auto
+  swap(dynamic_array<type> const &lhs, dynamic_array<type> const &rhs) noexcept
+      -> void
+  {
+    lhs.swap(rhs);
+  }
+
+} // namespace ds

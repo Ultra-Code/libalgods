@@ -1,0 +1,215 @@
+//#pragma once
+module;
+//#include <cstddef>
+//#include <iterator>
+//#include <iostream>
+//#include <memory>
+
+export module ds.doubly_list;
+import<cstddef>;
+import<iterator>;
+import<iostream>;
+import<memory>;
+
+export namespace ds
+{
+  template<typename type> class doubly_list final
+  {
+
+    struct doubly_list_node
+    {
+      type value_;
+      std::shared_ptr<doubly_list_node> next_;
+      doubly_list_node *previous_;
+    };
+
+    using node = doubly_list_node;
+    using head_ptr = std::shared_ptr<node>;
+    using tail_ptr = std::shared_ptr<node>;
+
+    size_t list_size_{};
+    head_ptr head_{};
+    tail_ptr tail_{};
+
+    struct doubly_list_itr
+    {
+      using difference_type = std::ptrdiff_t;
+      using value_type = node;
+      using pointer = node *;
+      using reference = node &;
+      using iterator_concept = std::bidirectional_iterator_tag;
+      using iterator_category = std::bidirectional_iterator_tag;
+
+      explicit doubly_list_itr(pointer ptr = nullptr) noexcept
+          : ptr_{ ptr }
+      {
+      }
+
+      auto
+      operator*() const noexcept -> reference
+      {
+        return *ptr_;
+      }
+
+      auto
+      operator->() const noexcept -> pointer
+      {
+        return ptr_;
+      }
+
+      auto
+      ptr() const noexcept -> pointer
+      {
+        return ptr_;
+      }
+
+      auto
+      operator++() noexcept -> doubly_list_itr &
+      {
+        ptr_ = ptr_->next_.get();
+        return *this;
+      }
+
+      auto
+      operator--() noexcept -> doubly_list_itr &
+      {
+        ptr_ = ptr_->previous_;
+        return *this;
+      }
+
+      auto
+      operator++(int) const noexcept -> doubly_list_itr
+      {
+        auto temp = *this;
+        ++(*this);
+        return temp;
+      }
+
+      auto
+      operator--(int) const noexcept -> doubly_list_itr
+      {
+        auto temp = *this;
+        --(*this);
+        return temp;
+      }
+
+      auto
+      operator<=>(doubly_list_itr const &rhs) const noexcept
+          -> std::strong_ordering = default;
+
+      auto
+      operator==(doubly_list_itr const &rhs) const noexcept -> bool
+          = default;
+
+    private:
+      pointer ptr_;
+    };
+
+    using iterator = doubly_list_itr;
+
+  public:
+    doubly_list() noexcept
+        : tail_{ std::make_shared<node>() }
+    {
+    }
+
+    auto
+    push_front(type const &value) noexcept -> void
+    {
+      insert(begin(), value);
+    }
+
+    auto
+    push_back(type const &value) noexcept -> void
+    {
+      insert(end(), value);
+    }
+
+    auto
+    insert(iterator position, type const &value) noexcept -> void
+    {
+      auto new_node = std::make_shared<node>(value);
+
+      if (position == begin())
+        {
+          if (size() > 0)
+            {
+              new_node->next_ = head_;
+              new_node->previous_ = end().ptr();
+              head_->previous_ = new_node.get();
+              head_->next_ = tail_;
+              tail_->previous_ = head_.get();
+            }
+          head_ = new_node;
+        }
+      else if (position == end())
+        {
+          new_node->previous_ = tail_->previous_;
+          new_node->next_ = tail_;
+          tail_->previous_->next_ = new_node;
+          tail_->previous_ = new_node.get();
+        }
+      else
+        {
+          auto insert_position = position;
+          /*std::ranges::prev(insert_position, 1);*/
+          auto position_ptr = insert_position.ptr();
+          position_ptr->next_->previous_ = new_node.get();
+          new_node->next_ = position_ptr->next_;
+          position_ptr->next_ = new_node;
+          new_node->previous_ = position_ptr;
+        }
+      ++list_size_;
+    }
+
+    auto
+    pop_front() noexcept -> void
+    {
+      head_ = head_->next_;
+    }
+
+    auto
+    pop_back() noexcept -> void
+    {
+      tail_ = std::shared_ptr<node>(tail_, tail_->previous_);
+    }
+
+    auto
+    erase(iterator position, type const &value) const noexcept -> void
+    {
+      auto current_begin = begin();
+      auto const distance = std::ranges::distance(current_begin, position);
+      auto erase_position = std::ranges::advance(position, -1);
+    }
+
+    [[nodiscard]] auto
+    empty() const noexcept -> bool
+    {
+      return head_ == nullptr;
+    }
+
+    [[nodiscard]] auto
+    size() const noexcept -> size_t
+    {
+      return list_size_;
+    }
+
+    static auto
+    value(node const &node) noexcept -> type const &
+    {
+      return node.value_;
+    }
+
+    auto
+    begin() const noexcept -> iterator
+    {
+      return iterator{ head_.get() };
+    }
+
+    auto
+    end() const noexcept -> iterator
+    {
+      return iterator{ tail_.get() };
+    }
+  };
+} // namespace ds

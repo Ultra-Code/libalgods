@@ -1,0 +1,36 @@
+//#include <src/algo/export.hxx>
+module;
+export module algo.binary_search;
+import<cmath>;
+import<numeric>;
+import<cstdint>;
+import<span>;
+
+export namespace algo
+{
+  auto
+  binary_search(std::span<auto> const &range, auto element) -> auto
+  {
+    auto left = uint32_t(0);
+    auto right = uint32_t(range.size() - 1);
+
+    while (left <= right)
+      {
+        auto middle_position = std::midpoint(left, right);
+        auto const middle_value = range[middle_position];
+
+        if (element == middle_value)
+          {
+            return middle_position;
+          }
+        else if (element > middle_value)
+          {
+            left = middle_position + 1;
+          }
+        else if (element < middle_value)
+          {
+            right = middle_position - 1;
+          }
+      }
+  }
+} // namespace algo
