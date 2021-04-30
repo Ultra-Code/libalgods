@@ -1,6 +1,6 @@
 #include <ut.hpp>
-//#include <algostruct/dynamic_array/dynamic_array.hxx>
-import ds.dynamic_array;
+#include <src/dynamic_array.mxx>
+// import ds.dynamic_array;
 // import boost.ut;
 
 using namespace boost::ut;

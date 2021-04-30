@@ -1,22 +1,21 @@
-//#pragma once
-//#include <cstddef>          // for ptrdiff_t
-//#include <iterator>         // forward_iterator_tag
-//#include <memory>           // shared_ptr
-//#include <compare>          // strong_ordering
-//#include <initializer_list> // initializer_list
-//#include <algorithm>
+#pragma once
+// module;
+#include <cstddef>          // for ptrdiff_t
+#include <iterator>         // forward_iterator_tag
+#include <memory>           // shared_ptr
+#include <compare>          // strong_ordering
+#include <initializer_list> // initializer_list
+#include <algorithm>
+// export module ds.singly_list;
+// import<cstddef>;
+// import<iterator>;
+// import<memory>;
+// import<compare>;
+// import<initializer_list>;
+// import<algorithm>;
 
-//#include <algostruct/singly_list/export.hxx>
-module;
-export module ds.singly_list;
-import<cstddef>;
-import<iterator>;
-import<memory>;
-import<compare>;
-import<initializer_list>;
-import<algorithm>;
-
-export namespace ds
+// export
+namespace ds
 {
   template<typename type> class singly_list
   {

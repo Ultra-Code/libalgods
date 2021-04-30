@@ -1,26 +1,25 @@
-//#pragma once
-//#include <cstddef>
-//#include <iterator>
-//#include <compare>
-//#include <memory>
-//#include <algorithm>
-//#include <initializer_list>
-//#include <utility>
-//#include <cassert>
+#pragma once
+// module;
+#include <cstddef>
+#include <iterator>
+#include <compare>
+#include <memory>
+#include <algorithm>
+#include <initializer_list>
+#include <utility>
+#include <cassert>
+// export module ds.dynamic_array;
+// import<cstddef>;
+// import<iterator>;
+// import<compare>;
+// import<memory>;
+// import<algorithm>;
+// import<initializer_list>;
+// import<utility>;
+// import<cassert>;
 
-//#include <algostruct/dynamic_array/export.hxx>
-module;
-export module ds.dynamic_array;
-import<cstddef>;
-import<iterator>;
-import<compare>;
-import<memory>;
-import<algorithm>;
-import<initializer_list>;
-import<utility>;
-import<cassert>;
-
-export namespace ds
+// export
+namespace ds
 {
 
   template<typename type> class dynamic_array

@@ -1,17 +1,17 @@
-//#pragma once
-module;
-//#include <cstddef>
-//#include <iterator>
-//#include <iostream>
-//#include <memory>
+#pragma once
+// module;
+#include <cstddef>
+#include <iterator>
+#include <iostream>
+#include <memory>
+// export module ds.doubly_list;
+// import<cstddef>;
+// import<iterator>;
+// import<iostream>;
+// import<memory>;
 
-export module ds.doubly_list;
-import<cstddef>;
-import<iterator>;
-import<iostream>;
-import<memory>;
-
-export namespace ds
+// export
+namespace ds
 {
   template<typename type> class doubly_list final
   {

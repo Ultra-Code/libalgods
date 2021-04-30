@@ -1,14 +1,13 @@
-//#include <cstdint>
-//#include <string>
-//#include <algorithm>
-//#include <cmath>
-//#include <algostruct/karatsuba/karatsuba.hxx>
-module;
-export module algo.karatsuba;
-import<cstdint>;
-import<string>;
-import<algorithm>;
-import<cmath>;
+// module;
+#include <cstdint>
+#include <string>
+#include <algorithm>
+#include <cmath>
+// export module algo.karatsuba;
+// import<cstdint>;
+// import<string>;
+// import<algorithm>;
+// import<cmath>;
 
 namespace algo
 {
@@ -22,7 +21,8 @@ namespace algo
     return { quotient, reminder };
   };
 
-  export auto
+  // export
+  auto
   karatsuba(uint64_t left_operand, uint64_t right_operand) -> uint64_t
   {
     auto constexpr single_digit = uint8_t(1);

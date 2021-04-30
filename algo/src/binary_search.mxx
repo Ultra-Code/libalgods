@@ -1,12 +1,17 @@
 //#include <src/algo/export.hxx>
-module;
-export module algo.binary_search;
-import<cmath>;
-import<numeric>;
-import<cstdint>;
-import<span>;
+// module;
+#include <cmath>
+#include <numeric>
+#include <cstdint>
+#include <span>
+// export module algo.binary_search;
+// import<cmath>;
+// import<numeric>;
+// import<cstdint>;
+// import<span>;
 
-export namespace algo
+// export
+namespace algo
 {
   auto
   binary_search(std::span<auto> const &range, auto element) -> auto

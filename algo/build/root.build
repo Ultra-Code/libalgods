@@ -1,10 +1,10 @@
 cxx.std = experimental
 
-cxx.features.modules = true
+//cxx.features.modules = true
 
 using cxx
 
-mxx{*}: extension = mxx
+hxx{*}: extension = mxx
 hxx{*}: extension = hxx
 cxx{*}: extension = cxx
 

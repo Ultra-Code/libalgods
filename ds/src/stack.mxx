@@ -1,14 +1,15 @@
-//#pragma once
+#pragma once
+// module;
+#include <cstddef>
+#include <initializer_list>
+#include <src/dynamic_array.mxx>
+// export module ds.stack;
+// import ds.dynamic_array;
+// import<cstddef>;
+// import<initializer_list>;
 
-//#include <algostruct/stack/export.hxx>
-//#include <algostruct/vector/vector.hxx>
-module;
-export module ds.stack;
-import ds.dynamic_array;
-import<cstddef>;
-import<initializer_list>;
-
-export namespace stack
+// export
+namespace stack
 {
   template<typename type> class stack
   {
