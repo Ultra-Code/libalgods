@@ -3,6 +3,7 @@
 #include <cmath>
 #include <numeric>
 #include <cstdint>
+#include <optional>
 #include <span>
 // export module algo.binary_search;
 // import<cmath>;
@@ -13,8 +14,10 @@
 // export
 namespace algo
 {
+  template<typename return_type>
   auto
-  binary_search(std::span<auto> const &range, auto element) -> auto
+  binary_search(std::span<const auto> const &range, return_type const &element)
+      -> std::optional<return_type>
   {
     auto left = uint32_t(0);
     auto right = uint32_t(range.size() - 1);
@@ -26,7 +29,7 @@ namespace algo
 
         if (element == middle_value)
           {
-            return middle_position;
+            return range[middle_position];
           }
         else if (element > middle_value)
           {
@@ -37,5 +40,6 @@ namespace algo
             right = middle_position - 1;
           }
       }
+    return std::nullopt;
   }
 } // namespace algo
