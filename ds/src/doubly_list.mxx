@@ -1,11 +1,14 @@
 #pragma once
 // module;
+#include <cmath>
 #include <cstddef>
+#include <initializer_list>
 #include <iterator>
-#include <iostream>
 #include <memory>
+#include <algorithm>
 // export module ds.doubly_list;
 // import<cstddef>;
+// import <algorithm>;
 // import<iterator>;
 // import<iostream>;
 // import<memory>;
@@ -113,6 +116,16 @@ namespace ds
     {
     }
 
+    // NOLINTNEXTLINE
+    explicit doubly_list(std::initializer_list<type> list)
+        : doubly_list()
+    {
+      for (auto const &element : list)
+        {
+          push_back(element);
+        }
+    }
+
     auto
     push_front(type const &value) noexcept -> void
     {
@@ -122,7 +135,9 @@ namespace ds
     auto
     push_back(type const &value) noexcept -> void
     {
-      insert(end(), value);
+      auto constexpr zero = uint(0);
+      auto current_end = end();
+      size() == zero ? push_front(value) : insert(current_end, value);
     }
 
     auto
@@ -132,32 +147,56 @@ namespace ds
 
       if (position == begin())
         {
-          if (size() > 0)
+          auto constexpr zero = uint(0);
+          if (size() == zero)
+            {
+              head_ = new_node;
+              head_->next_ = tail_;
+              head_->previous_ = end().ptr();
+              tail_->previous_ = begin().ptr();
+            }
+          else if (size() > zero)
             {
               new_node->next_ = head_;
-              new_node->previous_ = end().ptr();
+              new_node->previous_ = head_->previous_;
               head_->previous_ = new_node.get();
-              head_->next_ = tail_;
-              tail_->previous_ = head_.get();
+              head_ = new_node;
             }
-          head_ = new_node;
         }
       else if (position == end())
         {
-          new_node->previous_ = tail_->previous_;
           new_node->next_ = tail_;
+          new_node->previous_ = tail_->previous_;
           tail_->previous_->next_ = new_node;
           tail_->previous_ = new_node.get();
         }
       else
         {
-          auto insert_position = position;
-          /*std::ranges::prev(insert_position, 1);*/
-          auto position_ptr = insert_position.ptr();
-          position_ptr->next_->previous_ = new_node.get();
-          new_node->next_ = position_ptr->next_;
-          position_ptr->next_ = new_node;
-          new_node->previous_ = position_ptr;
+          auto current_begin = begin();
+          auto const distance = std::ranges::distance(current_begin, position);
+          auto const half_range = std::floor(size() / 2);
+          if (distance <= half_range)
+            {
+              auto constexpr insert_offset = uint8_t(1);
+              auto const forward_distance = distance - insert_offset;
+              auto foward_insert_position
+                  = std::ranges::next(current_begin, forward_distance);
+              new_node->next_ = foward_insert_position->next_;
+              new_node->previous_ = foward_insert_position.ptr();
+              foward_insert_position->next_->previous_ = new_node.get();
+              foward_insert_position->next_ = new_node;
+            }
+          else
+            {
+              auto current_end = end();
+              auto const backward_distance = size() - distance;
+              auto backward_insert_position
+                  = std::ranges::prev(current_end, backward_distance);
+              new_node->next_ = backward_insert_position->previous_->next_;
+              new_node->previous_ = backward_insert_position->previous_;
+              backward_insert_position->previous_->next_ = new_node;
+              backward_insert_position->previous_ = new_node.get();
+            }
         }
       ++list_size_;
     }
@@ -165,27 +204,64 @@ namespace ds
     auto
     pop_front() noexcept -> void
     {
-      head_ = head_->next_;
+      auto new_head = head_->next_;
+      [[maybe_unused]] auto old_head = std::move(head_);
+      head_ = std::move(new_head);
+      --list_size_;
     }
 
     auto
     pop_back() noexcept -> void
     {
-      tail_ = std::shared_ptr<node>(tail_, tail_->previous_);
+      auto new_tail = tail_->previous_->previous_->next_;
+      [[maybe_unused]] auto old_tail = std::move(tail_);
+      tail_ = std::move(new_tail);
+      --list_size_;
     }
 
     auto
-    erase(iterator position, type const &value) const noexcept -> void
+    find(type const &value) const -> iterator
     {
-      auto current_begin = begin();
-      auto const distance = std::ranges::distance(current_begin, position);
-      auto erase_position = std::ranges::advance(position, -1);
+      return std::ranges::find(begin(), end(), value, [](auto const &node) {
+        return ds::doubly_list<type>::value(node);
+      });
+    }
+
+    auto
+    remove(type const &value) noexcept -> void
+    {
+      auto remove_position = find(value);
+      if (remove_position not_eq end())
+        {
+          if (size() > 1UL)
+            {
+              [[maybe_unused]] auto element_to_remove
+                  = std::move(remove_position->previous_->next_);
+              remove_position->next_->previous_ = remove_position->previous_;
+              remove_position->previous_->next_ = remove_position->next_;
+            }
+          else
+            {
+              [[maybe_unused]] auto element_to_remove
+                  = std::move(remove_position->previous_->next_);
+            }
+        }
+      --list_size_;
+    }
+
+    auto
+    clear() noexcept -> void
+    {
+      for (auto const &nodes : *this)
+        {
+          remove(value(nodes));
+        }
     }
 
     [[nodiscard]] auto
     empty() const noexcept -> bool
     {
-      return head_ == nullptr;
+      return size() == 0UL;
     }
 
     [[nodiscard]] auto
