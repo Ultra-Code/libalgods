@@ -1,8 +1,9 @@
 intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
 #import xxxx_libs += libhello%lib{hello}
+import intf_libs = liberrors%libs{errors}
 
-lib{ds}: {hxx mxx cxx}{** -version} hxx{version} $impl_libs $intf_libs
+libs{ds}: {hxx mxx cxx}{** -version} hxx{version} $impl_libs $intf_libs
 
 # Include the generated version header into the distribution (so that we don't
 # pick up an installed one) and don't remove it when cleaning in src (so that
@@ -20,8 +21,8 @@ hxx{export}@./: cxx.importable = false
 #
 cxx.poptions =+ "-I$out_root" "-I$src_root"
 
-{hbmia obja}{*}: cxx.poptions += -DSRC_STATIC_BUILD
-{hbmis objs}{*}: cxx.poptions += -DSRC_SHARED_BUILD
+{hbmia obja}{*}: cxx.poptions += -DDS_STATIC_BUILD
+{hbmis objs}{*}: cxx.poptions += -DDS_SHARED_BUILD
 
 # Export options.
 #
@@ -31,8 +32,8 @@ lib{ds}:
   cxx.export.libs = $intf_libs
 }
 
-liba{ds}: cxx.export.poptions += -DSRC_STATIC
-libs{ds}: cxx.export.poptions += -DSRC_SHARED
+liba{ds}: cxx.export.poptions += -DDS_STATIC
+libs{ds}: cxx.export.poptions += -DDS_SHARED
 
 # For pre-releases use the complete version to make sure they cannot be used
 # in place of another pre-release or the final version. See the version module
