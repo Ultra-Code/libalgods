@@ -15,7 +15,7 @@ auto constexpr print = [](auto const &list) {
   return stream_list.str();
 };
 
-suite doubly_list_test = [] {
+suite const doubly_list_test = [] {
   "Doubly linked list front_insertion test"_test = [] {
     given("Given an empty doubly list") = [] {
       auto list = ds::doubly_list<int>{};
