@@ -8,6 +8,7 @@
 #include <initializer_list>
 #include <utility>
 #include <cassert>
+#include <liberrors/errors.hxx>
 // export module ds.dynamic_array;
 // import<cstddef>;
 // import<iterator>;
@@ -24,17 +25,20 @@ namespace ds
 
   template<typename type> class dynamic_array
   {
-    size_t size_;
-    size_t capacity_;
+    int64_t size_;
+    int64_t capacity_;
     std::unique_ptr<type[]> data_; // NOLINT
 
-    struct dyna_iter
+    struct dyna_iter final
     {
       // member variables required by iterator_traits
       using difference_type = std::ptrdiff_t;
       using value_type = type;
       using pointer = type *;
+      using const_pointer = type const *;
+      using const_iterator = type const *;
       using reference = type &;
+      using const_reference = type const &;
       using iterator_category = std::random_access_iterator_tag;
       using iterator_concept = std::contiguous_iterator_tag;
 
@@ -123,13 +127,13 @@ namespace ds
       }
 
       auto
-      operator*() const -> reference
+      operator*() const noexcept -> reference
       {
         return *ptr_;
       }
 
       auto
-      operator->() const -> pointer
+      operator->() const noexcept -> pointer
       {
         return ptr_;
       }
@@ -145,20 +149,50 @@ namespace ds
     private:
       pointer ptr_;
     };
-
     using iterator = dyna_iter;
 
+    auto
+    increase_dynamic_capacity(int64_t increase_rate) noexcept
+    {
+      errors::assert_that(increase_rate > 1,
+                          "Error: increase_rate must be greater than one");
+
+      auto bigger_array = dynamic_array(capacity_ * increase_rate);
+      std::ranges::move(begin(), end(), bigger_array.begin());
+      bigger_array.size_ = size_;
+      *this = std::move(bigger_array);
+    }
+
+    [[nodiscard]] auto
+    move_element_backward_for_insert(iterator pos) const noexcept -> size_t
+    {
+      const auto insert_position = std::ranges::distance(begin(), pos);
+      const auto position_pos_to_size = size_ - insert_position;
+      const auto position_pos_to_newsize = position_pos_to_size + 1;
+      const auto pos_end = pos + position_pos_to_size;
+      const auto insert_pos_end = pos + position_pos_to_newsize;
+      std::ranges::move_backward(pos, pos_end, insert_pos_end);
+      return insert_position;
+    }
+
+    auto
+    insert_at(int64_t index, type const &value) noexcept
+    {
+      this->at(index) = value;
+      size_++;
+    }
+
   public:
-    explicit dynamic_array(size_t capacity)
+    explicit dynamic_array(int64_t capacity)
         : size_{ 0 }
         , capacity_{ capacity } // NOLINTNEXTLINE
         , data_{ std::make_unique<type[]>(capacity) }
     {
     }
     // NOLINTNEXTLINE
-    explicit dynamic_array(std::initializer_list<type> list)
-        : size_{ list.size() }
-        , capacity_{ list.size() }
+    explicit dynamic_array(std::initializer_list<type> &&list)
+        : size_{ int64_t(list.size()) }
+        , capacity_{ int64_t(list.size()) }
         , data_{ std::make_unique<type[]>(list.size()) } // NOLINT
     {
       std::ranges::move(list, begin());
@@ -198,20 +232,27 @@ namespace ds
       return *this;
     }
 
+    [[nodiscard]] auto
+    at(int64_t index) const noexcept -> type &
+    {
+      errors::assert_that(index <= size_ and index >= 0,
+                          "Error: index out of range");
+      return this->data_[index];
+    }
+
     auto
     push_back(type const &value) noexcept -> void
     {
       if (size_ < capacity_)
         {
-          data_[size_++] = value;
+          auto const index = size_;
+          insert_at(index, value);
         }
       else
         {
-          dynamic_array bigger_array = dynamic_array(size_ * 2);
-          std::ranges::move(begin(), end(), bigger_array.begin());
-          bigger_array.size_ = size_;
-          bigger_array.data_[bigger_array.size_++] = value;
-          *this = std::move(bigger_array);
+          increase_dynamic_capacity(2);
+          auto const index = size_;
+          insert_at(index, value);
         }
     }
 
@@ -220,6 +261,45 @@ namespace ds
     {
       *end() = 0;
       --size_;
+    }
+
+    auto
+    insert(iterator pos, type const &value) noexcept
+    {
+      const auto position = std::ranges::distance(begin(), pos);
+      errors::assert_that(position <= size_ and position >= 0,
+                          "Error: inserting out of bound");
+      if (size_ < capacity_)
+        {
+          if (position < size_)
+            {
+              auto insert_index = move_element_backward_for_insert(pos);
+              insert_at(insert_index, value);
+            }
+          else if (position == size_)
+            {
+              const auto insert_index = position;
+              insert_at(insert_index, value);
+            }
+        }
+      else if (capacity_ == size_)
+        {
+          if (position < size_)
+            {
+              // after this operation previous iterators are invalidated
+              // and must be reseted before used
+              increase_dynamic_capacity(2);
+              pos = begin() + position;
+              auto insert_index = move_element_backward_for_insert(pos);
+              insert_at(insert_index, value);
+            }
+          else if (position == size_)
+            {
+              increase_dynamic_capacity(2);
+              auto const insert_index = position;
+              insert_at(insert_index, value);
+            }
+        }
     }
 
     auto
@@ -253,25 +333,25 @@ namespace ds
     auto
     begin() const noexcept -> iterator
     {
-      return iterator(data_.get());
+      return dyna_iter(data_.get());
     }
 
     auto
     end() const noexcept -> iterator
     {
-      return iterator(data_.get() + size_);
+      return dyna_iter(data_.get() + size_);
     }
 
     auto
     begin() noexcept -> iterator
     {
-      return iterator(data_.get());
+      return dyna_iter(data_.get());
     }
 
     auto
     end() noexcept -> iterator
     {
-      return iterator(data_.get() + size_);
+      return dyna_iter(data_.get() + size_);
     }
 
     ~dynamic_array() = default;
