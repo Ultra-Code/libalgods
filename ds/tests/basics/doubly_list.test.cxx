@@ -10,7 +10,7 @@ auto constexpr print = [](auto const &list) {
   std::stringstream stream_list{};
   for (auto const &element : list)
     {
-      stream_list << ds::doubly_list<int>::value(element) << ' ';
+      stream_list << element << ' ';
     }
   return stream_list.str();
 };
@@ -144,7 +144,7 @@ suite const doubly_list_test = [] {
         printer out;
         for (; begining != ending; ++begining)
           {
-            out << ds::doubly_list<int>::value(*begining) << ' ';
+            out <<*begining << ' ';
           }
         expect(begining == ending) << out.str();
       };
@@ -154,7 +154,7 @@ suite const doubly_list_test = [] {
         --ending;
         for (; begining != ending; --ending)
           {
-            out << ds::doubly_list<int>::value(*ending) << ' ';
+            out <<*ending << ' ';
           }
         expect(begining == ending) << out.str();
       };

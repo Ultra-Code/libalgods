@@ -37,7 +37,7 @@ namespace ds
     struct doubly_list_itr
     {
       using difference_type = std::ptrdiff_t;
-      using value_type = node;
+      using value_type = type;
       using pointer = node *;
       using reference = node &;
       using iterator_concept = std::bidirectional_iterator_tag;
@@ -49,9 +49,9 @@ namespace ds
       }
 
       auto
-      operator*() const noexcept -> reference
+      operator*() const noexcept -> value_type
       {
-        return *ptr_;
+        return ptr_->value_;
       }
 
       auto
@@ -222,9 +222,7 @@ namespace ds
     auto
     find(type const &value) const -> iterator
     {
-      return std::ranges::find(begin(), end(), value, [](auto const &node) {
-        return ds::doubly_list<type>::value(node);
-      });
+      return std::ranges::find(begin(), end(), value);
     }
 
     auto
@@ -252,9 +250,9 @@ namespace ds
     auto
     clear() noexcept -> void
     {
-      for (auto const &nodes : *this)
+      for (auto const &values : *this)
         {
-          remove(value(nodes));
+          remove(values);
         }
     }
 
@@ -268,12 +266,6 @@ namespace ds
     size() const noexcept -> size_t
     {
       return list_size_;
-    }
-
-    static auto
-    value(node const &node) noexcept -> type const &
-    {
-      return node.value_;
     }
 
     auto
