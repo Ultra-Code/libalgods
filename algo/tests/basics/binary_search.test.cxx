@@ -1,6 +1,6 @@
 #include <ut.hpp>
 // import boost.ut
-#include <src/binary_search.mxx>
+#include <src/binary_search.hxx>
 #include <vector>
 #include <span>
 #include <optional>
