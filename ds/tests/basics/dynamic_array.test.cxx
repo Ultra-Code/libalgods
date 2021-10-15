@@ -1,5 +1,5 @@
 #include <ut.hpp>
-#include <src/dynamic_array.mxx>
+#include <src/dynamic_array.hxx>
 // import ds.dynamic_array;
 // import boost.ut;
 

@@ -1,7 +1,7 @@
 #include <iterator>
 #include <sstream>
 #include <ut.hpp>
-#include <src/doubly_list.mxx>
+#include <src/doubly_list.hxx>
 
 using namespace boost::ut;
 using namespace boost::ut::bdd;
