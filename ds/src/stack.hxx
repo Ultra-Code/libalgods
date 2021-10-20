@@ -2,7 +2,7 @@
 // module;
 #include <cstddef>
 #include <initializer_list>
-#include <src/dynamic_array.mxx>
+#include <src/dynamic_array.hxx>
 // export module ds.stack;
 // import ds.dynamic_array;
 // import<cstddef>;
